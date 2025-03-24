@@ -66,8 +66,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "https://localhost:3000",
-                "https://mogua-g109cgdv1-joshuayeyos-projects.vercel.app",
-                "https://mogua.vercel.app"
+                "https://moguastudy.vercel.app"
         ));
 
         // 모든 HTTP 메서드 허용
