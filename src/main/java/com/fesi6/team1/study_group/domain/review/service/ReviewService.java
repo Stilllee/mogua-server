@@ -49,7 +49,7 @@ public class ReviewService {
 
         String path = "reviewImage";
         String fileName = null;
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/reviewImage/";
+        String basePath = "mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
 
         if (image != null && !image.isEmpty()) {
             String uploadedFileName = s3FileService.uploadFile(image, path);
@@ -97,7 +97,7 @@ public class ReviewService {
         }
         if (image != null) {
             String path = "reviewImage";
-            String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/reviewImage/";
+            String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
             String currentThumbnail = review.getThumbnail();
 
             boolean isDefaultImage = currentThumbnail != null && currentThumbnail.equals(basePath + "defaultProfileImages.png");
@@ -124,7 +124,7 @@ public class ReviewService {
 
         String currentThumbnail = review.getThumbnail();
         if (currentThumbnail != null && !currentThumbnail.isEmpty()) {
-            String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/reviewImage/";
+            String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
             String oldFilePath = currentThumbnail.replace(basePath, "");
             s3FileService.deleteFile(oldFilePath);
         }

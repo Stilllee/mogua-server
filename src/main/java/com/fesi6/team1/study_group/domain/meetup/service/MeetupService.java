@@ -50,7 +50,7 @@ public class MeetupService {
 
         String path = "meetupImage";
         String fileName;
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/meetupImage/";
+        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
         if (image == null) {
             fileName = basePath + "defaultProfileImages.png";
         } else {
@@ -92,7 +92,7 @@ public class MeetupService {
         meetup.setTitle(request.getTitle());
         meetup.setContent(request.getContent());
         String path = "meetupImage";
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/meetupImage/";
+        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
         if (image != null) {
             String currentThumbnail = meetup.getThumbnail();
             boolean isDefaultImage = currentThumbnail != null && currentThumbnail.equals(basePath + "defaultProfileImages.png");
@@ -124,7 +124,7 @@ public class MeetupService {
         }
 
         String currentThumbnail = meetup.getThumbnail();
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/meetupImage/";
+        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
         if (currentThumbnail != null && !currentThumbnail.equals(basePath + "defaultProfileImages.png")) {
             String oldFilePath = currentThumbnail.replace(basePath, "");
             s3FileService.deleteFile(oldFilePath);

@@ -103,7 +103,7 @@ public class UserService {
                 .build();
         user.setPassword(encodedPassword);
 
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/profileImage/";
+        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/profileImage/";
         int randomNum = new Random().nextInt(4) + 1;
         String fileName = basePath + "defaultProfileImages/" + randomNum + ".png";
         user.setProfileImg(fileName);
@@ -198,7 +198,7 @@ public class UserService {
 
         String path = "profileImage";
         String currentProfileImg = user.getProfileImg();
-        String basePath = "https://fesi6.s3.dualstack.ap-southeast-2.amazonaws.com/profileImage/";
+        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/profileImage/";
         boolean isDefaultImage = currentProfileImg == null || currentProfileImg.startsWith(basePath + "defaultProfileImages/");
 
         if (!isDefaultImage && currentProfileImg != null) {
