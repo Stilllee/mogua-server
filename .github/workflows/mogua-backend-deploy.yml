@@ -57,7 +57,14 @@ jobs:
           echo "server.port=8080" >> src/main/resources/application.properties
 
       - name: 빌드하기
-        run: ./gradlew clean build -x test
+        run: |
+          ./gradlew clean
+          ./gradlew bootJar -x test
+          # 빌드 결과 확인
+          ls -la build/libs/
+          # 결과물 복사
+          cp build/libs/*.jar ./mogua-server.jar || echo "JAR 파일이 없습니다"
+          ls -la ./mogua-server.jar || echo "mogua-server.jar 파일이 생성되지 않았습니다"
 
       - name: 빌드된 파일 이름 변경하기
         run: mv ./build/libs/*.jar ./mogua-server.jar
