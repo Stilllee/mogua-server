@@ -1,0 +1,16 @@
+src/main/resources/
+/src/main/resources/application.properties
+
+# Maven
+target/
+
+# Gradle
+.gradle/
+build/
+out/
+
+# IntelliJ
+.idea/
+
+# VSCode
+.vscode/
