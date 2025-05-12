@@ -19,7 +19,7 @@ import com.fesi6.team1.study_group.domain.user.dto.UserTutoringReviewResponseDTO
 import com.fesi6.team1.study_group.domain.user.dto.UserTutoringReviewResponseDTOList;
 import com.fesi6.team1.study_group.domain.user.entity.User;
 import com.fesi6.team1.study_group.domain.user.service.UserService;
-import com.fesi6.team1.study_group.global.common.s3.S3FileService;
+import com.fesi6.team1.study_group.global.common.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,36 +43,27 @@ public class ReviewService {
     private final MeetupService meetupService;
     private final MeetupUserService meetupUserService;
     private final UserService userService;
-    private final S3FileService s3FileService;
+    private final SupabaseStorageService supabaseStorageService;
 
-    public void saveReview(CreateReviewRequestDTO request, Long userId, MultipartFile image) throws IOException {
-
-        String path = "reviewImage";
+    public void saveReview(CreateReviewRequestDTO request, Long userId, MultipartFile image) throws Exception {
         String fileName = null;
-        String basePath = "mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
-
         if (image != null && !image.isEmpty()) {
-            String uploadedFileName = s3FileService.uploadFile(image, path);
-            fileName = basePath + uploadedFileName;
+            fileName = supabaseStorageService.uploadReviewImage(image);
         }
-
         Long meetupId = request.getMeetupId();
         MeetupUser meetupUser = meetupUserService.findByMeetupIdAndUserId(meetupId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 모임에 대한 사용자가 존재하지 않습니다."));
         if (meetupUser.isHasReview()) {
             throw new IllegalStateException("이미 리뷰를 작성하셨습니다.");
         }
-
         Meetup meetup = meetupService.findMeetupById(meetupId);
         User user = userService.findById(userId);
-
         Review review = Review.builder()
                 .meetup(meetup)
                 .user(user)
                 .content(request.getContent())
                 .rating(request.getRating())
                 .build();
-
         if (fileName != null) {
             review.setThumbnail(fileName);
         }
@@ -89,25 +80,21 @@ public class ReviewService {
     }
 
 
-    public void updateReview(UpdateReviewRequestDTO request, Long reviewId, Long userId, MultipartFile image) throws IOException {
-
-        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 존재하지 않습니다."));;
+    public void updateReview(UpdateReviewRequestDTO request, Long reviewId, Long userId, MultipartFile image) throws Exception {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 존재하지 않습니다."));
         if (!review.getUser().getId().equals(userId)) {
             throw new IllegalStateException("리뷰를 수정할 권한이 없습니다");
         }
         if (image != null) {
-            String path = "reviewImage";
-            String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
             String currentThumbnail = review.getThumbnail();
-
+            String basePath = supabaseStorageService.getPublicUrl("review-images", "");
             boolean isDefaultImage = currentThumbnail != null && currentThumbnail.equals(basePath + "defaultProfileImages.png");
-
             if (!isDefaultImage && currentThumbnail != null) {
                 String oldFilePath = currentThumbnail.replace(basePath, "");
-                s3FileService.deleteFile(oldFilePath);
+                supabaseStorageService.deleteFile(supabaseStorageService.getPublicUrl("review-images", oldFilePath));
             }
-            String uploadedFileName = s3FileService.uploadFile(image, path);
-            review.setThumbnail(basePath + uploadedFileName);
+            review.setThumbnail(supabaseStorageService.uploadReviewImage(image));
         }
         review.setContent(request.getContent());
         review.setRating(request.getRating());
@@ -115,22 +102,18 @@ public class ReviewService {
     }
 
     public void deleteReview(Long reviewId, Long userId) {
-
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 존재하지 않습니다."));
         if (!review.getUser().getId().equals(userId)) {
             throw new IllegalStateException("리뷰를 삭제할 권한이 없습니다.");
         }
-
         String currentThumbnail = review.getThumbnail();
         if (currentThumbnail != null && !currentThumbnail.isEmpty()) {
-            String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/reviewImage/";
+            String basePath = supabaseStorageService.getPublicUrl("review-images", "");
             String oldFilePath = currentThumbnail.replace(basePath, "");
-            s3FileService.deleteFile(oldFilePath);
+            supabaseStorageService.deleteFile(supabaseStorageService.getPublicUrl("review-images", oldFilePath));
         }
-
         reviewRepository.delete(review);
-
         MeetupUser meetupUser = meetupUserService.findByMeetupIdAndUserId(
                         review.getMeetup().getId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 모임에 대한 사용자가 존재하지 않습니다."));

@@ -1,5 +1,3 @@
-src/main/resources/
-/src/main/resources/application.properties
 mogua-server-key.pem
 
 # Maven
@@ -15,3 +13,6 @@ out/
 
 # VSCode
 .vscode/
+
+.env
+application-local.properties

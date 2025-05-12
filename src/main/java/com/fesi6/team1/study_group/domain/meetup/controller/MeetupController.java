@@ -36,7 +36,7 @@ public class MeetupController {
     public ResponseEntity<?> CreateMeetups(
             @AuthenticationPrincipal Long userId,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestPart(value = "request") CreateMeetupRequestDTO request) throws IOException{
+            @RequestPart(value = "request") CreateMeetupRequestDTO request) throws Exception {
         Map<String, Object> responseData = meetupService.saveMeetup(image, request, userId);
         meetupRequestService.requestMeetup((Long) responseData.get("meetupId"), userId);
         return ResponseEntity.ok()
@@ -53,7 +53,7 @@ public class MeetupController {
             @AuthenticationPrincipal Long userId,
             @PathVariable("meetupId") Long meetupId,
             @RequestPart(value ="image",required = false) MultipartFile image,
-            @RequestPart UpdateMeetupRequestDTO request) throws IOException, IllegalAccessException {
+            @RequestPart UpdateMeetupRequestDTO request) throws Exception {
         meetupService.updateMeetup(image, request, userId, meetupId);
         return ResponseEntity.ok().body(ApiResponse.successWithMessage("모임 수정 성공"));
     }

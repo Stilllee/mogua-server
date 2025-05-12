@@ -14,7 +14,7 @@ import com.fesi6.team1.study_group.domain.user.entity.LoginType;
 import com.fesi6.team1.study_group.domain.user.entity.User;
 import com.fesi6.team1.study_group.domain.user.entity.UserTag;
 import com.fesi6.team1.study_group.domain.user.repository.UserRepository;
-import com.fesi6.team1.study_group.global.common.s3.S3FileService;
+import com.fesi6.team1.study_group.global.common.storage.SupabaseStorageService;
 import com.fesi6.team1.study_group.global.security.jwt.JwtCookieUtil;
 import com.fesi6.team1.study_group.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final MeetupUserService meetupUserService;
     private final JwtCookieUtil jwtCookieUtil;
-    private final S3FileService s3FileService;
+    private final SupabaseStorageService supabaseStorageService;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public ResponseCookie createAccessTokenCookie(Long userId) {
@@ -103,9 +103,9 @@ public class UserService {
                 .build();
         user.setPassword(encodedPassword);
 
-        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/profileImage/";
+        String basePath = supabaseStorageService.getPublicUrl("profile-images", "defaultProfileImages/");
         int randomNum = new Random().nextInt(4) + 1;
-        String fileName = basePath + "defaultProfileImages/" + randomNum + ".png";
+        String fileName = basePath + randomNum + ".png";
         user.setProfileImg(fileName);
 
         userRepository.save(user);
@@ -163,7 +163,7 @@ public class UserService {
                 .orElseThrow(() -> new NullPointerException("해당 유저는 존재하지 않습니다."));
     }
 
-    public void updateMyProfile(Long userId, MultipartFile file, UpdateProfileRequestDTO request) throws IOException {
+    public void updateMyProfile(Long userId, MultipartFile file, UpdateProfileRequestDTO request) throws Exception {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -194,20 +194,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    private void updateProfileImage(User user, MultipartFile file) throws IOException {
-
-        String path = "profileImage";
+    private void updateProfileImage(User user, MultipartFile file) throws Exception {
         String currentProfileImg = user.getProfileImg();
-        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/profileImage/";
+        String basePath = supabaseStorageService.getPublicUrl("profile-images", "");
         boolean isDefaultImage = currentProfileImg == null || currentProfileImg.startsWith(basePath + "defaultProfileImages/");
 
         if (!isDefaultImage && currentProfileImg != null) {
             String oldFilePath = currentProfileImg.replace(basePath, "");
-            s3FileService.deleteFile(oldFilePath);
+            supabaseStorageService.deleteFile(supabaseStorageService.getPublicUrl("profile-images", oldFilePath));
         }
 
-        String uploadedFileName = s3FileService.uploadFile(file, path);
-        user.setProfileImg(basePath + uploadedFileName);
+        String uploadedFileName = supabaseStorageService.uploadProfileImage(file);
+        user.setProfileImg(uploadedFileName);
     }
 
     /***

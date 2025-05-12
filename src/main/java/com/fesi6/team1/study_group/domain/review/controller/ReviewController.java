@@ -32,7 +32,7 @@ public class ReviewController {
     public ResponseEntity<?> createReview(
             @AuthenticationPrincipal Long userId,
             @RequestPart(value = "image",required = false) MultipartFile image,
-            @RequestPart(value = "request") CreateReviewRequestDTO request) throws IOException {
+            @RequestPart(value = "request") CreateReviewRequestDTO request) throws Exception {
 
         reviewService.saveReview(request, userId, image);
         return ResponseEntity.ok().body(ApiResponse.successWithMessage("Review created successfully"));
@@ -80,7 +80,7 @@ public class ReviewController {
             @AuthenticationPrincipal Long userId,
             @PathVariable Long reviewId,
             @RequestPart(required = false) MultipartFile image,
-            @RequestPart UpdateReviewRequestDTO request) throws IOException {
+            @RequestPart UpdateReviewRequestDTO request) throws Exception {
         reviewService.updateReview(request, reviewId, userId, image);
         return ResponseEntity.ok().body(ApiResponse.successWithMessage("Review updated successfully"));
     }

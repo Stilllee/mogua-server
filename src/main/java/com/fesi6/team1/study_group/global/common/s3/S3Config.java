@@ -1,3 +1,4 @@
+/*
 package com.fesi6.team1.study_group.global.common.s3;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -29,3 +30,4 @@ public class S3Config {
                 .build();
     }
 }
+*/

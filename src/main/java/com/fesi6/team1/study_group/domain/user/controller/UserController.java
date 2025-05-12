@@ -164,7 +164,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> updateMyProfile(
             @AuthenticationPrincipal Long userId,
             @RequestPart(value ="image", required = false) MultipartFile image,
-            @RequestPart("request") UpdateProfileRequestDTO request) throws IOException {
+            @RequestPart("request") UpdateProfileRequestDTO request) throws Exception {
         userService.updateMyProfile(userId, image, request);
         return ResponseEntity.ok().body(ApiResponse.successWithMessage("Profile update successful"));
     }

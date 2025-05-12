@@ -8,7 +8,7 @@ import com.fesi6.team1.study_group.domain.review.dto.UserWrittenReviewResponseDT
 import com.fesi6.team1.study_group.domain.review.dto.UserWrittenReviewResponseDTOList;
 import com.fesi6.team1.study_group.domain.user.entity.User;
 import com.fesi6.team1.study_group.domain.user.service.UserService;
-import com.fesi6.team1.study_group.global.common.s3.S3FileService;
+import com.fesi6.team1.study_group.global.common.storage.SupabaseStorageService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -35,7 +35,7 @@ public class MeetupService {
 
     private final MeetupRepository meetupRepository;
     private final UserService userService;
-    private final S3FileService s3FileService;
+    private final SupabaseStorageService supabaseStorageService;
 
     public Meetup findById(Long meetupId) {
         return meetupRepository.findById(meetupId)
@@ -46,19 +46,14 @@ public class MeetupService {
         meetupRepository.save(meetup);
     }
 
-    public Map<String, Object> saveMeetup(MultipartFile image, CreateMeetupRequestDTO request, Long userId) throws IOException {
-
-        String path = "meetupImage";
+    public Map<String, Object> saveMeetup(MultipartFile image, CreateMeetupRequestDTO request, Long userId) throws Exception {
         String fileName;
-        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
         if (image == null) {
-            fileName = basePath + "defaultProfileImages.png";
+            fileName = supabaseStorageService.getPublicUrl("meetup-images", "defaultProfileImages.png");
         } else {
-            String uploadedFileName = s3FileService.uploadFile(image, path);
-            fileName = basePath + uploadedFileName;
+            fileName = supabaseStorageService.uploadMeetupImage(image);
         }
         User host = userService.findById(userId);
-
         Meetup meetup = Meetup.builder()
                 .title(request.getTitle())
                 .meetingType(request.getMeetingType())
@@ -74,62 +69,44 @@ public class MeetupService {
                 .location(request.getIsOnline() ? MeetupLocation.UNDEFINED : request.getLocation())
                 .build();
         meetupRepository.save(meetup);
-
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("meetupId", meetup.getId());
         return responseData;
     }
 
-    public void updateMeetup(MultipartFile image, UpdateMeetupRequestDTO request, Long userId, Long meetupId) throws IOException, IllegalAccessException {
-
+    public void updateMeetup(MultipartFile image, UpdateMeetupRequestDTO request, Long userId, Long meetupId) throws Exception {
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 모임이 존재하지 않습니다."));
-
         if (!meetup.getHost().getId().equals(userId)) {
             throw new IllegalAccessException("수정 권한이 없습니다.");
         }
-
         meetup.setTitle(request.getTitle());
         meetup.setContent(request.getContent());
-        String path = "meetupImage";
-        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
         if (image != null) {
             String currentThumbnail = meetup.getThumbnail();
+            String basePath = supabaseStorageService.getPublicUrl("meetup-images", "");
             boolean isDefaultImage = currentThumbnail != null && currentThumbnail.equals(basePath + "defaultProfileImages.png");
             if (!isDefaultImage && currentThumbnail != null) {
                 String oldFilePath = currentThumbnail.replace(basePath, "");
-                s3FileService.deleteFile(oldFilePath);
+                supabaseStorageService.deleteFile(supabaseStorageService.getPublicUrl("meetup-images", oldFilePath));
             }
-            String uploadedFileName = s3FileService.uploadFile(image, path);
-            meetup.setThumbnail(basePath + uploadedFileName);
-        } else {
-            String currentThumbnail = meetup.getThumbnail();
-            boolean isDefaultImage = currentThumbnail != null && currentThumbnail.equals(basePath + "defaultProfileImages.png");
-            if (!isDefaultImage && currentThumbnail != null) {
-                String oldFilePath = currentThumbnail.replace(basePath, "");
-                s3FileService.deleteFile(oldFilePath);
-            }
-            meetup.setThumbnail(basePath + "defaultProfileImages.png");
+            meetup.setThumbnail(supabaseStorageService.uploadMeetupImage(image));
         }
-
         meetupRepository.save(meetup);
     }
 
     public void deleteMeetup(Long userId, Long meetupId) throws IllegalAccessException {
-
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 모임이 존재하지 않습니다."));
         if (!meetup.getHost().getId().equals(userId)) {
             throw new IllegalAccessException("삭제 권한이 없습니다.");
         }
-
         String currentThumbnail = meetup.getThumbnail();
-        String basePath = "https://mogua.s3.ap-northeast-2.amazonaws.com/meetupImage/";
+        String basePath = supabaseStorageService.getPublicUrl("meetup-images", "");
         if (currentThumbnail != null && !currentThumbnail.equals(basePath + "defaultProfileImages.png")) {
             String oldFilePath = currentThumbnail.replace(basePath, "");
-            s3FileService.deleteFile(oldFilePath);
+            supabaseStorageService.deleteFile(supabaseStorageService.getPublicUrl("meetup-images", oldFilePath));
         }
-
         meetupRepository.delete(meetup);
     }
 

@@ -42,8 +42,9 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'com.h2database:h2' // H2 DB
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.590'
+	implementation 'org.postgresql:postgresql'
+	// implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	// implementation 'com.amazonaws:aws-java-sdk-s3:1.12.590'
 }
 
 tasks.named('compileJava') {

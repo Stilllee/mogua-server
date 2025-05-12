@@ -1,3 +1,4 @@
+/*
 package com.fesi6.team1.study_group.global.common.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -37,3 +38,4 @@ public class S3FileService {
         s3Client.deleteObject(new DeleteObjectRequest(bucketName, filePath));
     }
 }
+*/
