@@ -2,7 +2,8 @@
 FROM gradle:7.6.1-jdk17-alpine AS build
 WORKDIR /app
 COPY . .
-RUN gradle build -x test --no-daemon
+RUN chmod +x ./gradlew
+RUN ./gradlew build -x test --no-daemon
 
 # Run stage
 FROM openjdk:17-slim
