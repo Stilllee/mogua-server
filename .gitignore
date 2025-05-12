@@ -16,3 +16,5 @@ out/
 
 .env
 application-local.properties
+
+SPRING_PROFILES_ACTIVE=prod

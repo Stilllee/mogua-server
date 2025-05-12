@@ -1,9 +1,12 @@
 services:
   - type: web
     name: mogua-server
-    env: java
+    runtime: java
+    plan: free
+    region: singapore
     buildCommand: ./gradlew build
     startCommand: java -jar build/libs/*.jar
+    autoDeploy: true
     envVars:
       - key: JAVA_VERSION
         value: 17
