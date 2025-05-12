@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.idea
+*.iml
+.gradle
+build
+!build/libs/*.jar
+README.md
+*.log 

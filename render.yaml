@@ -1,15 +1,9 @@
 services:
   - type: web
     name: mogua-server
-    runtime: java
-    plan: free
+    runtime: docker
     region: singapore
-    buildCommand: |
-      export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-      export PATH=$JAVA_HOME/bin:$PATH
-      chmod +x gradlew
-      ./gradlew build
-    startCommand: java -jar build/libs/*.jar
+    plan: free
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
