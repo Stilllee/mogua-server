@@ -62,9 +62,13 @@ public class SupabaseStorageService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + supabaseAnonKey);
+        headers.set("apikey", supabaseAnonKey);
+        
         // ContentType이 null일 경우 기본값 설정
         String contentType = file.getContentType();
         headers.setContentType(MediaType.valueOf(contentType != null ? contentType : "application/octet-stream"));
+        headers.set("Cache-Control", "3600");
+        headers.set("x-upsert", "true");  // 동일한 경로에 파일이 있을 경우 덮어쓰기
 
         HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
