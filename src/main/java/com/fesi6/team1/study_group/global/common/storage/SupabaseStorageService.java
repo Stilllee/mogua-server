@@ -39,18 +39,32 @@ public class SupabaseStorageService {
     }
 
     public String uploadFile(MultipartFile file, String bucket) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("파일이 비어있습니다.");
+        }
+
+        String fileName = UUID.randomUUID().toString();
         String originalFilename = file.getOriginalFilename();
         String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        
+        if (originalFilename != null && !originalFilename.trim().isEmpty()) {
+            int lastDotIndex = originalFilename.lastIndexOf(".");
+            if (lastDotIndex > 0) {
+                extension = originalFilename.substring(lastDotIndex);
+            }
         }
-        String fileName = UUID.randomUUID().toString() + extension;
-        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+        
+        fileName = fileName + (extension.isEmpty() ? ".tmp" : extension);
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+                .replace("+", "%20");
         String url = supabaseUrl + "/storage/v1/object/" + bucket + "/" + encodedFileName;
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + supabaseAnonKey);
-        headers.setContentType(MediaType.valueOf(file.getContentType()));
+        // ContentType이 null일 경우 기본값 설정
+        String contentType = file.getContentType();
+        headers.setContentType(MediaType.valueOf(contentType != null ? contentType : "application/octet-stream"));
 
         HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
