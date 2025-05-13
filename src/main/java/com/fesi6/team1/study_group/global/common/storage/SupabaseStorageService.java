@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Service
@@ -37,8 +39,14 @@ public class SupabaseStorageService {
     }
 
     public String uploadFile(MultipartFile file, String bucket) throws Exception {
-        String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
-        String url = supabaseUrl + "/storage/v1/object/" + bucket + "/" + fileName;
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String fileName = UUID.randomUUID().toString() + extension;
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+        String url = supabaseUrl + "/storage/v1/object/" + bucket + "/" + encodedFileName;
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + supabaseAnonKey);
@@ -48,7 +56,7 @@ public class SupabaseStorageService {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
-            return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + fileName;
+            return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + encodedFileName;
         } else {
             throw new RuntimeException("Supabase Storage 업로드 실패: " + response.getStatusCode());
         }
@@ -68,6 +76,12 @@ public class SupabaseStorageService {
     }
 
     public String getPublicUrl(String bucket, String fileName) {
-        return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + fileName;
+        if (fileName == null || fileName.isEmpty()) return null;
+        try {
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            return supabaseUrl + "/storage/v1/object/public/" + bucket + "/" + encodedFileName;
+        } catch (Exception e) {
+            throw new RuntimeException("파일 이름 인코딩 실패", e);
+        }
     }
 } 
